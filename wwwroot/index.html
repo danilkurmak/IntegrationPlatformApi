@@ -1,0 +1,82 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Интеграционная платформа (ПР-6)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 24px;
+            max-width: 900px;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        button {
+            padding: 10px 14px;
+            cursor: pointer;
+        }
+
+        pre {
+            background: #111;
+            color: #eee;
+            padding: 12px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Интеграционная платформа (ПР-6)</h1>
+    <p>Интерфейс позволяет запустить интеграционный сценарий (ReminderApi → OtpravkaApi).</p>
+
+    <div class="row">
+        <button id="btnReminders">Проверить напоминания (GET ReminderApi)</button>
+        <button id="btnSend">Отправить отчёт (POST Integration)</button>
+    </div>
+
+    <h3>Результат</h3>
+<pre id="out">Нажмите кнопку, чтобы выполнить запрос...</pre>
+
+    <script>
+        const out = document.getElementById('out');
+
+        function print(title, status, body) {
+            out.textContent = `${title}\nStatus: ${status}\n\n${typeof body === 'string' ? body : JSON.stringify(body, null, 2)
+                }`;
+        }
+
+        async function readBody(resp) {
+            const ct = resp.headers.get('content-type') || '';
+            return ct.includes('application/json') ? resp.json() : resp.text();
+        }
+
+        // ===== GET напоминаний ЧЕРЕЗ BACKEND (без CORS) =====
+        document.getElementById('btnReminders').onclick = async () => {
+            try {
+                const resp = await fetch('/api/Integration/reminders');
+                const body = await readBody(resp);
+                print('GET /api/Integration/reminders', resp.status, body);
+            } catch (e) {
+                print('GET /api/Integration/reminders', 'ERROR', e.toString());
+            }
+        };
+
+        // ===== Запуск интеграционного сценария =====
+        document.getElementById('btnSend').onclick = async () => {
+            try {
+                const resp = await fetch('/api/Integration/send-report', { method: 'POST' });
+                const body = await readBody(resp);
+                print('POST /api/Integration/send-report', resp.status, body);
+            } catch (e) {
+                print('POST /api/Integration/send-report', 'ERROR', e.toString());
+            }
+        };
+    </script>
+
+</body>
+</html>
